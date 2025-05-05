@@ -1,53 +1,76 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { LoginModel } from "../../Models/Login";
+import { userLoginAPICall } from "../../Services/AuthenticationService";
+import logo from '../../assets/logo.png';
 import './Login.css';
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaTimes } from 'react-icons/fa';
-import { Logo } from '../../assets';
 
 const Login = () => {
-  const [credentials, setCredentials] = useState({
-    email: '',
-    password: ''
-  });
+  const [user, setUser] = useState(new LoginModel());
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState({ message: '', show: false });
   const [isLoading, setIsLoading] = useState(false);
+  const [buttonPosition, setButtonPosition] = useState({ x: 0, y: 0 });
+  const [isButtonRunning, setIsButtonRunning] = useState(false);
+  const buttonRef = useRef(null);
   const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setCredentials(prev => ({
+  const areFieldsFilled = user.username.trim() !== '' && user.password.trim() !== '';
+
+  const changeUser = (event) => {
+    const { name, value } = event.target;
+    setUser(prev => ({
       ...prev,
       [name]: value
     }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const login = async (event) => {
+    event.preventDefault();
+    if (!areFieldsFilled) return;
+
     setIsLoading(true);
-    
+    setError({ message: '', show: false });
+
     try {
-      // Basic validation
-      if (!credentials.email || !credentials.password) {
-        throw new Error('Please fill in all fields');
-      }
+      const response = await userLoginAPICall(user);
 
-      // Email validation
-      if (!/^\S+@\S+\.\S+$/.test(credentials.email)) {
-        throw new Error('Please enter a valid email address');
-      }
+      if (response.status === 200) {
+        const loggedInUser = response.data.data;
+        sessionStorage.setItem("user", JSON.stringify(loggedInUser));
+        const role = loggedInUser.role?.toLowerCase();
 
-      // API call would go here
-      // const response = await userLoginAPICall(credentials);
-      // For demo purposes, we'll simulate a successful login
-      setTimeout(() => {
-        // On successful login
-        sessionStorage.setItem('user', JSON.stringify({ email: credentials.email }));
-        navigate('/dashboard');
-      }, 1000);
-      
-    } catch (err) {
-      setError({ message: err.message, show: true });
+        switch (role) {
+          case 'admin':
+            navigate("/admindashboard");
+            break;
+          case 'restaurantmanager':
+            navigate("/restaurantmanager-dashboard");
+            break;
+          case 'customer':
+            navigate("/customerdashboard");
+            break;
+          case 'deliverypartner':
+            navigate("/deliverydashboard");
+            break;
+          default:
+            setError({
+              message: 'Unauthorized access. Please contact support.',
+              show: true
+            });
+            sessionStorage.removeItem("user");
+        }
+      } else {
+        setError({ message: 'Incorrect email or password', show: true });
+      }
+    } catch (error) {
+      console.error("Login Error:", error);
+      setError({
+        message: error.response?.data?.message || 'Login failed. Please check your credentials.',
+        show: true
+      });
+    } finally {
       setIsLoading(false);
     }
   };
@@ -60,75 +83,121 @@ const Login = () => {
     setError(prev => ({ ...prev, show: false }));
   };
 
+  const moveButton = () => {
+    if (areFieldsFilled) return;
+
+    setIsButtonRunning(true);
+
+    const container = buttonRef.current?.parentElement?.parentElement;
+    if (!container) return;
+
+    const containerRect = container.getBoundingClientRect();
+    const buttonRect = buttonRef.current.getBoundingClientRect();
+
+    const maxX = containerRect.width - buttonRect.width;
+    const maxY = containerRect.height - buttonRect.height;
+
+    const offsetX = Math.floor(Math.random() * maxX);
+    const offsetY = Math.floor(Math.random() * maxY);
+
+    const directionX = Math.random() < 0.5 ? -1 : 1;
+
+    setButtonPosition({
+      x: directionX * offsetX,
+      y: -offsetY
+    });
+
+    setTimeout(() => setIsButtonRunning(false), 500);
+  };
+
+  const handleButtonMouseEnter = () => {
+    if (!areFieldsFilled && !isButtonRunning) {
+      moveButton();
+    }
+  };
+
+  const handleButtonClick = (e) => {
+    if (!areFieldsFilled) {
+      e.preventDefault();
+      moveButton();
+    }
+  };
+
+  useEffect(() => {
+    if (areFieldsFilled) {
+      setButtonPosition({ x: 0, y: 0 });
+    }
+  }, [user.username, user.password]);
+
   return (
     <div className="login-container">
-      {/* Animated Background */}
       <div className="bg-animation">
         {[...Array(3)].map((_, i) => (
-          <div key={`bubble-${i+1}`} className={`bubble bubble-${i+1}`} />
+          <div key={`bubble-${i + 1}`} className={`bubble bubble-${i + 1}`} />
         ))}
       </div>
 
-      {/* Login Card */}
       <div className="login-card">
         <div className="logo">
-          <img 
-            src={Logo} 
-            alt="HotByte Logo" 
-            onError={(e) => {
-              e.target.onerror = null;
-              e.target.src = '/default-logo.png'; // Fallback image
-            }}
-          />
+          <img src={logo} alt="HotByte Logo"
+            onError={(e) => { e.target.onerror = null; e.target.src = '/default-logo.png'; }} />
         </div>
-        
+
         <h2>Login to HotByte</h2>
         <p>Get access to your orders, offers, and more!</p>
-        
-        <form onSubmit={handleSubmit} noValidate>
+
+        <form onSubmit={login} noValidate>
           <div className="input-group">
-            <input 
-              type="email" 
-              name="email"
-              placeholder="Enter Email" 
-              required 
-              value={credentials.email}
-              onChange={handleChange}
+            <input
+              type="email"
+              name="username"
+              placeholder="Enter Email"
+              required
+              value={user.username}
+              onChange={changeUser}
               autoComplete="username"
             />
             <FaEnvelope className="icon" />
           </div>
-          
+
           <div className="input-group">
-            <input 
-              type={showPassword ? "text" : "password"} 
+            <input
+              type={showPassword ? "text" : "password"}
               name="password"
-              placeholder="Enter Password" 
-              required 
-              value={credentials.password}
-              onChange={handleChange}
+              placeholder="Enter Password"
+              required
+              value={user.password}
+              onChange={changeUser}
               autoComplete="current-password"
             />
             <FaLock className="icon" />
-            <button 
-              type="button" 
-              className="toggle-password" 
+            <button
+              type="button"
+              className="toggle-password"
               onClick={togglePasswordVisibility}
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
               {showPassword ? <FaEyeSlash /> : <FaEye />}
             </button>
           </div>
-          
-          <button 
-            type="submit" 
+
+          <button
+            ref={buttonRef}
+            type="submit"
             className="login-btn"
             disabled={isLoading}
+            style={{
+              transform: `translate(${buttonPosition.x}px, ${buttonPosition.y}px)`,
+              transition: isButtonRunning ? 'transform 0.5s ease-out' : 'none',
+              cursor: areFieldsFilled ? 'pointer' : 'default'
+            }}
+            onMouseEnter={handleButtonMouseEnter}
+            onClick={handleButtonClick}
           >
             {isLoading ? 'Logging in...' : 'Login'}
           </button>
         </form>
-        
+
         <div className="footer-links">
           <a href="/forgot-password">Forgot Password?</a>
           <span>•</span>
@@ -136,12 +205,11 @@ const Login = () => {
         </div>
       </div>
 
-      {/* Error Popup */}
       {error.show && (
         <div className="popup">
           <div className="popup-content">
-            <button 
-              className="close-btn" 
+            <button
+              className="close-btn"
               onClick={closeError}
               aria-label="Close error message"
             >

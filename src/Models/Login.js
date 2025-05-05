@@ -1,10 +1,10 @@
+
 export class LoginModel {
   username = "";
-    password = "";
-  
-    constructor(username = "", password = "") {
-      this.username = email;
-      this.password = password;
-    }
+  password = "";
+
+  constructor(username = "", password = "") {
+    this.username = username; 
+    this.password = password;
   }
-  
+}
