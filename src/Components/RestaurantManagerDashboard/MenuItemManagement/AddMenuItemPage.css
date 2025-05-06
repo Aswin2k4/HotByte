@@ -1,10 +1,9 @@
 /* Main Form Container */
 .RMD-add-menu-item-container {
   width: 100%;
-  max-width: 1400px;
   padding: 3rem;
   background: rgba(255, 255, 255, 0.95);
-  border-radius: 20px;
+  /* border-radius: 20px; */
   box-shadow: 
     0 10px 30px rgba(0, 0, 0, 0.1),
     0 0 0 1px rgba(0, 0, 0, 0.02);
@@ -21,11 +20,12 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 8px;
+  height: 12px;
   background: linear-gradient(90deg, #3498db, #2ecc71, #e74c3c, #f39c12, #9b59b6);
   background-size: 500% 100%;
   animation: gradientBG 15s ease infinite;
 }
+
 
 /* Animations */
 @keyframes fadeIn {

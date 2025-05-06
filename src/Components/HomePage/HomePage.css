@@ -25,6 +25,7 @@ body {
 /* Container & Layout */
 .hotbyte-container {
   min-height: 10vh;
+  width: 100%;
   display: flex;
   flex-direction: column;
   background: url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=2070&auto=format&fit=crop') center/cover no-repeat fixed;

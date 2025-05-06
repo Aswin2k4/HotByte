@@ -370,15 +370,32 @@ const ViewMenuItems = () => {
               </div>
 
               <div className="RMD-form-group">
-                <label htmlFor="imagePath">Image URL</label>
-                <input
-                  type="text"
-                  id="imagePath"
-                  name="imagePath"
-                  value={formData.imagePath || ''}
-                  onChange={handleChange}
-                />
-              </div>
+  <label htmlFor="imagePath">Image URL</label>
+  <input
+    type="text"
+    id="imagePath"
+    name="imagePath"
+    value={formData.imagePath || ''}
+    onChange={handleChange}
+    placeholder="https://example.com/image.jpg"
+  />
+  {formData.imagePath && (
+    <div className="RMD-url-preview">
+      <span className="RMD-url-preview-title"></span>
+      <a href={formData.imagePath} className="RMD-url-preview-link" target="_blank" rel="noopener noreferrer">
+
+      </a>
+      <img 
+        src={formData.imagePath} 
+        alt="Preview" 
+        className="RMD-url-preview-image" 
+        onError={(e) => {
+          e.target.style.display = 'none';
+        }}
+      />
+    </div>
+  )}
+</div>
 
               <div className="RMD-form-group">
                 <label htmlFor="cuisine">Cuisine</label>

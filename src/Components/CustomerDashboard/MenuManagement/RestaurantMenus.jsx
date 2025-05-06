@@ -8,6 +8,7 @@ import {
 } from "../../../Services/CustomerService";
 import AddToCartButton from "./AddToCartButton";
 import "./RestaurantMenus.css";
+import { FaShoppingCart } from "react-icons/fa";
 
 function RestaurantMenus() {
   const { id } = useParams();
@@ -85,12 +86,12 @@ function RestaurantMenus() {
 
   return (
     <div className="restaurant-menu">
-      <button 
+      <button
         className="view-cart-btn pulse" 
         onClick={() => navigate("/cart")}
         aria-label="View your shopping cart"
-      >
-        🛒 View Cart
+      ><FaShoppingCart />
+         View Cart
       </button>
 
       {restaurant && (

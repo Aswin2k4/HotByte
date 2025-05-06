@@ -111,7 +111,7 @@ const SignUp = () => {
   return (
     <div className="signup-signup-container">
       <div className="signup-signup-card">
-        <div className="signup-logo-container">
+        <div className="logo">
           <img src={logo} alt="HotByte Logo" className="signup-logo-image" />
           <h2 className="signup-signup-title">Create Your Account</h2>
         </div>

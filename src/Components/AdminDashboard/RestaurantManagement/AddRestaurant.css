@@ -1,7 +1,6 @@
 /* Main Form Container */
 .add-restaurant-container {
   width: 100%;
-  max-width: 1400px;
   padding: 3rem;
   background: rgba(255, 255, 255, 0.95);
   border-radius: 20px;

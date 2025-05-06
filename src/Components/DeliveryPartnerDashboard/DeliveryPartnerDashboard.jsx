@@ -8,9 +8,13 @@ import {
   MdClose
 } from 'react-icons/md';
 import { IoMdLogOut } from 'react-icons/io';
+import { FaUser, FaMotorcycle, FaEnvelope, FaPhone, FaIdCard, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { 
   GetDeliveryPartnerOrdersAPICall,
-  UpdateOrderDeliveryStatusAPICall 
+  UpdateOrderDeliveryStatusAPICall,
+  getDeliveryPartnerById 
 } from '../../Services/DeliveryPartnerService';
 import './DeliveryPartnerDashboard.css';
 
@@ -22,6 +26,7 @@ const DeliveryPartnerDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [deliveryPartner, setDeliveryPartner] = useState(null);
   const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState("basic");
 
   useEffect(() => {
     const user = JSON.parse(sessionStorage.getItem("user"));
@@ -31,6 +36,7 @@ const DeliveryPartnerDashboard = () => {
     }
     setDeliveryPartner(user);
     fetchOrders(user.id);
+    fetchPartnerData(user.id);
   }, [navigate]);
 
   const fetchOrders = async (deliveryPartnerId) => {
@@ -39,12 +45,11 @@ const DeliveryPartnerDashboard = () => {
       setError(null);
       const response = await GetDeliveryPartnerOrdersAPICall(deliveryPartnerId);
       
-      // Transform API response to match our expected format
       const formattedOrders = response.data.map(order => ({
         ...order,
-        deliveryAddress: order.customerAddress, // Map customerAddress to deliveryAddress
-        orderItems: order.orderedItems || [],   // Map orderedItems to orderItems
-        statusId: order.statusId || 4           // Default to "Ready for Pickup" if status not provided
+        deliveryAddress: order.customerAddress,
+        orderItems: order.orderedItems || [],
+        statusId: order.statusId || 4
       }));
       
       setOrders(formattedOrders);
@@ -57,12 +62,28 @@ const DeliveryPartnerDashboard = () => {
     }
   };
 
+  const fetchPartnerData = async (deliveryPartnerId) => {
+    try {
+      setLoading(true);
+      const response = await getDeliveryPartnerById(deliveryPartnerId);
+      setDeliveryPartner(prev => ({ ...prev, ...response.data }));
+      toast.success("Profile data loaded successfully!");
+    } catch (err) {
+      console.error("Failed to fetch delivery partner data:", err);
+      toast.error(err.response?.data?.message || err.message || "Failed to load profile");
+      if (err.response?.status === 401) {
+        navigate('/login');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
-  const handleNavigation = (path, itemName) => {
-    navigate(path);
+  const handleNavigation = (itemName) => {
     setActiveItem(itemName);
   };
 
@@ -75,16 +96,13 @@ const DeliveryPartnerDashboard = () => {
     try {
       setLoading(true);
       
-      // Validate status transition
-      const validStatuses = [5, 6, 7]; // Out for Delivery, Delivered, Cancelled
+      const validStatuses = [5, 6, 7];
       if (!validStatuses.includes(newStatusId)) {
         throw new Error("Invalid status transition");
       }
   
-      // Call API with raw integer value
       await UpdateOrderDeliveryStatusAPICall(orderId, newStatusId);
       
-      // Update local state
       setOrders(orders.map(order => 
         order.orderId === orderId ? { 
           ...order, 
@@ -93,10 +111,10 @@ const DeliveryPartnerDashboard = () => {
         } : order
       ));
       
-      alert(`Order status updated to ${getStatusText(newStatusId)}`);
+      toast.success(`Order status updated to ${getStatusText(newStatusId)}`);
     } catch (error) {
       console.error("Update error:", error);
-      alert(error.response?.data?.title || "Failed to update order status");
+      toast.error(error.response?.data?.title || "Failed to update order status");
     } finally {
       setLoading(false);
     }
@@ -141,7 +159,7 @@ const DeliveryPartnerDashboard = () => {
           <ul>
             <li 
               className={activeItem === "Dashboard" ? "active" : ""}
-              onClick={() => handleNavigation("/delivery-dashboard", "Dashboard")}
+              onClick={() => handleNavigation("Dashboard")}
             >
               <MdDashboard className="nav-icon" />
               <span>Dashboard</span>
@@ -149,12 +167,11 @@ const DeliveryPartnerDashboard = () => {
             
             <li 
               className={activeItem === "Profile" ? "active" : ""}
-              onClick={() => handleNavigation("/delivery-partner/profile/:partnerId", "Profile")}
+              onClick={() => handleNavigation("Profile")}
             >
               <MdPerson className="nav-icon" />
               <span>Profile</span>
             </li>
-            
           </ul>
         </div>
 
@@ -171,21 +188,89 @@ const DeliveryPartnerDashboard = () => {
         {activeItem === "Profile" && deliveryPartner && (
           <div className="profile-section">
             <div className="profile-header">
-              <h1>Your Profile</h1>
+              <h1><FaUser className="dpp-icon" /> Your Profile</h1>
             </div>
-            <div className="profile-details">
-              <div className="detail-row">
-                <span className="detail-label">Name:</span>
-                <span className="detail-value">{deliveryPartner.name}</span>
-              </div>
-              <div className="detail-row">
-                <span className="detail-label">Email:</span>
-                <span className="detail-value">{deliveryPartner.email}</span>
-              </div>
-              <div className="detail-row">
-                <span className="detail-label">Phone:</span>
-                <span className="detail-value">{deliveryPartner.phoneNumber}</span>
-              </div>
+            
+            <div className="dpp-tabs">
+              <button
+                className={activeTab === "basic" ? "dpp-active" : ""}
+                onClick={() => setActiveTab("basic")}
+              >
+                <FaUser className="dpp-icon" /> Basic Info
+              </button>
+              <button
+                className={activeTab === "vehicle" ? "dpp-active" : ""}
+                onClick={() => setActiveTab("vehicle")}
+              >
+                <FaMotorcycle className="dpp-icon" /> Vehicle Info
+              </button>
+            </div>
+
+            <div className="dpp-tab-content">
+              {activeTab === "basic" && (
+                <div className="dpp-info">
+                  <div className="dpp-info-item">
+                    <FaUser className="dpp-icon" />
+                    <p>
+                      <strong>Full Name:</strong> {deliveryPartner.name || deliveryPartner.fullName}
+                    </p>
+                  </div>
+                  <div className="dpp-info-item">
+                    <FaIdCard className="dpp-icon" />
+                    <p>
+                      <strong>Username:</strong> {deliveryPartner.username}
+                    </p>
+                  </div>
+                  <div className="dpp-info-item">
+                    <FaEnvelope className="dpp-icon" />
+                    <p>
+                      <strong>Email:</strong> {deliveryPartner.email}
+                    </p>
+                  </div>
+                  <div className="dpp-info-item">
+                    <FaPhone className="dpp-icon" />
+                    <p>
+                      <strong>Phone:</strong> {deliveryPartner.phone || deliveryPartner.phoneNumber}
+                    </p>
+                  </div>
+                  <div className="dpp-info-item">
+                    {deliveryPartner.isAvailable ? (
+                      <FaCheckCircle className="dpp-icon" style={{ color: '#27ae60' }} />
+                    ) : (
+                      <FaTimesCircle className="dpp-icon" style={{ color: '#e74c3c' }} />
+                    )}
+                    <p>
+                      <strong>Availability:</strong> {deliveryPartner.isAvailable ? "Available" : "Unavailable"}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === "vehicle" && (
+                <div className="dpp-info">
+                  <h3><FaMotorcycle className="dpp-icon" /> Vehicle Information</h3>
+                  {deliveryPartner.vehicleNumber ? (
+                    <div className="dpp-vehicle-grid">
+                      <div className="dpp-info-item">
+                        <FaMotorcycle className="dpp-icon" />
+                        <p>
+                          <strong>Vehicle Number:</strong> {deliveryPartner.vehicleNumber}
+                        </p>
+                      </div>
+                      <div className="dpp-info-item">
+                        <FaIdCard className="dpp-icon" />
+                        <p>
+                          <strong>License Number:</strong> {deliveryPartner.drivingLicense || "Not provided"}
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="dpp-no-data">
+                      <FaMotorcycle className="dpp-icon" /> No vehicle information available
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -193,7 +278,7 @@ const DeliveryPartnerDashboard = () => {
         {activeItem === "Dashboard" && (
           <>
             <div className="delivery-header">
-              <h1>Welcome, {deliveryPartner?.name || 'Delivery Partner'}!</h1>
+              <h1>Welcome, {deliveryPartner?.name || deliveryPartner?.fullName || 'Delivery Partner'}!</h1>
               <p>Your current deliveries and order status</p>
             </div>
 
@@ -230,7 +315,7 @@ const DeliveryPartnerDashboard = () => {
                           <ul>
                             {order.orderItems.map((item, index) => (
                               <li key={index}>
-                                {item.quantity}x {item.itemName} - {item.priceAtPurchase}
+                                {item.quantity}x {item.itemName} - ₹{item.priceAtPurchase}
                               </li>
                             ))}
                           </ul>

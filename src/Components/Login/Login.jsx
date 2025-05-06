@@ -151,7 +151,7 @@ const Login = () => {
             <input
               type="email"
               name="username"
-              placeholder="Enter Email"
+              placeholder="Enter Your Email"
               required
               value={user.username}
               onChange={changeUser}

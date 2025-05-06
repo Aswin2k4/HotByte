@@ -180,13 +180,21 @@ function CustomerDashboard() {
         </div>
         
         <div className="header-icons">
-          <button className="profile" onClick={() => navigate(`/customer/profile/${customerId}`)}>
-            <span>Profile</span>
-          </button>
-
           <button className="track-orders" onClick={() => navigate('/track-orders')}>
             <FaMapMarkerAlt className="header-icon" />
               <span>Track Orders</span>
+          </button>
+
+          <button className="cart" onClick={() => navigate('/cart')}>
+            {/* You can enable the cart count like below */}
+            {/* <i className="fa fa-shopping-cart"></i> */}
+            <FaShoppingCart className="header-icon" />
+            <span>Cart</span>
+          </button>
+
+          <button className="profile" onClick={() => navigate(`/customer/profile/${customerId}`)}>
+          <FaUser className="header-icon" />
+            <span>Profile</span>
           </button>
 
           <button className="logout" onClick={handleLogout}>
@@ -194,11 +202,6 @@ function CustomerDashboard() {
               <span>Logout</span>
           </button>
 
-          <button className="cart" onClick={() => navigate('/cart')}>
-            {/* You can enable the cart count like below */}
-            {/* <i className="fa fa-shopping-cart"></i> */}
-            <span>Cart</span>
-          </button>
         </div>
       </header>
 
