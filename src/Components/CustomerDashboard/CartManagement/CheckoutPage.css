@@ -388,6 +388,7 @@
   font-family: inherit;
   transition: var(--transition);
   background: var(--lighter-gray);
+    color: black;
 }
 
 .address-form input:focus {
@@ -567,6 +568,7 @@
   font-family: inherit;
   transition: var(--transition);
   background: var(--light);
+  color: black;
 }
 
 .payment-details.card input:focus {

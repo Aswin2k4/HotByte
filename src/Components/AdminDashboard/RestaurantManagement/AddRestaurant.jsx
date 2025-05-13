@@ -61,18 +61,19 @@ const AddRestaurant = () => {
     
     if (!formData.restaurantlogo.trim()) {
       newErrors.restaurantlogo = 'Image URL is required';
-    } else if (!isValidImageUrl(formData.restaurantlogo)) {
-      newErrors.restaurantlogo = 'Please enter a valid image URL';
     }
+    // else if (!isValidImageUrl(formData.restaurantlogo)) {
+    //   newErrors.restaurantlogo = 'Please enter a valid image URL';
+    // }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const isValidImageUrl = (url) => {
-    // Basic URL validation for common image extensions
-    return /\.(jpeg|jpg|gif|png|webp)$/i.test(url);
-  };
+  // const isValidImageUrl = (url) => {
+  //   // Basic URL validation for common image extensions
+  //   return /\.(jpeg|jpg|gif|png|webp)$/i.test(url);
+  // };
 
   const handleSubmit = async (e) => {
     e.preventDefault();

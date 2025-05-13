@@ -196,9 +196,15 @@ const RestaurantManagerDashboard = () => {
   };
 
   const canCancelOrder = (statusId) => {
-    // Can cancel orders that are not yet ready or already completed
-    return [1, 2, 3].includes(statusId);
+    // Allowing cancel only if status is Placed (1), Confirmed (2), or Preparing (3)
+    return statusId === 1 || statusId === 2 || statusId === 3;
   };
+
+
+  // const canCancelOrder = (statusId) => {
+  //   // Can cancel orders that are not yet ready or already completed
+  //   return [1, 2, 3].includes(statusId);
+  // };
 
   return (
     <div className={`restaurant-container ${isSidebarOpen ? "sidebar-open" : "sidebar-closed"}`}>

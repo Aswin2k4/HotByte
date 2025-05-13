@@ -77,8 +77,9 @@ const CheckoutPage = () => {
   const getPaymentMethodId = (method) => {
     const methods = {
       "UPI": 1,
-      "Card": 2,
-      "Cash on Delivery": 3
+      "Cash on Delivery": 2, 
+      "Card": 3
+      
     };
     return methods[method] || 1;
   };
@@ -296,6 +297,12 @@ const CheckoutPage = () => {
           </div>
         )}
 
+        {paymentMethod === "Cash on Delivery" && (
+          <div className="payment-details cod">
+            <p>Pay in cash when your order is delivered</p>
+          </div>
+        )}
+
         {paymentMethod === "Card" && (
           <div className="payment-details card">
             <input type="text" placeholder="Card Number" maxLength={16} />
@@ -304,12 +311,6 @@ const CheckoutPage = () => {
               <input type="text" placeholder="MM/YY" maxLength={5} />
               <input type="text" placeholder="CVV" maxLength={3} />
             </div>
-          </div>
-        )}
-
-        {paymentMethod === "Cash on Delivery" && (
-          <div className="payment-details cod">
-            <p>Pay in cash when your order is delivered</p>
           </div>
         )}
       </div>

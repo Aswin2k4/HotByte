@@ -68,13 +68,13 @@ export function deleteMenuItemAPICall(menuItemId) {
   return axiosInstance.delete(url);
 }
 
-// Add this function to get restaurant orders
+// Getting the orders which are placed dor particular restaurant
 export function GetRestaurantOrdersAPICall(managerId) {
   const url = `${baseUrl}/RestaurantManager/${managerId}/orders`;
   return axiosInstance.get(url);
 }
 
-// Add to RestaurantManagerService.js
+// Order status update 
 export function UpdateOrderStatusAPICall(orderId, statusId) {
   const managerId = JSON.parse(sessionStorage.getItem("user")).id;
   const url = `${baseUrl}/RestaurantManager/${managerId}/orders/${orderId}/status/${statusId}`;
